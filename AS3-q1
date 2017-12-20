@@ -37,7 +37,7 @@ class Config:
     n_word_features = 2 # Number of features for every word in the input.
     window_size = 1 # The size of the window to use.
     ### YOUR CODE HERE
-    n_window_features = 0 # The total number of features used for each window.
+    n_window_features = (n_worde_features*2+1)*window_size # The total number of features used for each window.
     ### END YOUR CODE
     n_classes = 5
     dropout = 0.5
@@ -97,7 +97,14 @@ def make_windowed_data(data, start, end, window_size = 1):
     windowed_data = []
     for sentence, labels in data:
     ### YOUR CODE HERE (5-20 lines)
-
+        LSentence=len(sentence)
+        sentenceWin=[]
+        sentenceWin=start*window_size+sentenceWin+end*window_size
+        for l in range(LSentence):
+            sen_win=[]
+            sen_win=[sentenceWin[(l-window_size):(l+window_size+1)]]
+            windowed_data.append((sen_win,labels[i]))
+        
     ### END YOUR CODE
     return windowed_data
 
@@ -130,7 +137,7 @@ class WindowModel(NERModel):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE (~3-5 lines)
-
+        
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=1):
@@ -154,6 +161,9 @@ class WindowModel(NERModel):
         """
         ### YOUR CODE HERE (~5-10 lines)
          
+            
+            
+            
         ### END YOUR CODE
         return feed_dict
 
