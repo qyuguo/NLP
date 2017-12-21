@@ -107,7 +107,18 @@ def make_windowed_data(data, start, end, window_size = 1):
         
     ### END YOUR CODE
     return windowed_data
-
+"""
+Process to tensorflow
+    1. define variables, tf.Variable/tf.random.uniform
+    2. define placeholders
+        tf.placeholder(dtype,shape,name)
+    3. define loss function, loss=cross entropy
+    4. define object
+        tf.gradient..min().learningrate
+    5. define session
+        run
+        initialize W,b
+"""
 class WindowModel(NERModel):
     """
     Implements a feedforward neural network with an embedding layer and
@@ -137,9 +148,11 @@ class WindowModel(NERModel):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE (~3-5 lines)
-        
+        self.input_placeholder=tf.placeholder(tf.int32,(None,Config.n_window_features))
+        self.labels_placeholder=tf.placeholder(tf.int32,(None,))
+        self.dropout_placeholder=tf.placeholder(tf.float32)
         ### END YOUR CODE
-
+        ###http://yann.lecun.com/exdb/mnist/ MNIST dataset
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=1):
         """Creates the feed_dict for the model.
         A feed_dict takes the form of:
@@ -160,9 +173,11 @@ class WindowModel(NERModel):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE (~5-10 lines)
-         
-            
-            
+        feed_dic={self.input_placeholder: input_batch,
+                  self.dropout: dropout
+        }
+        if labels_batch!=None:
+            feed_dic[self.labels_placeholder]=labels_batch
             
         ### END YOUR CODE
         return feed_dict
@@ -184,9 +199,9 @@ class WindowModel(NERModel):
             embeddings: tf.Tensor of shape (None, n_window_features*embed_size)
         """
         ### YOUR CODE HERE (!3-5 lines)
-                                                             
-                                  
-                                                                                                                 
+        embeddings = tf.nn.embedding_lookup(self.pretrained_embeddings, self.input_placeholder)             ##e(t)
+        embeddings = tf.reshape(embeddings, [-1, Config.embed_size * Config.n_window_features ])            ##W                                         
+                                                                                                              
         ### END YOUR CODE
         return embeddings
 
@@ -217,7 +232,16 @@ class WindowModel(NERModel):
         x = self.add_embedding()
         dropout_rate = self.dropout_placeholder
         ### YOUR CODE HERE (~10-20 lines)
-
+        xav = tf.contrib.layers.xavier_initializer(uniform=True, seed=None, dtype=tf.float32)
+        W = tf.get_variable("W", shape = [ Config.n_window_features * Config.embed_size, 
+                                            Config.hidden_size], dtype=tf.float32, initializer = xav)
+        b1 = tf.get_variable("b1", shape = [Config.hidden_size], dtype=tf.float32, initializer = xav)
+        h = tf.nn.relu(tf.matmul(x, W) + b1)
+        h_drop = tf.nn.dropout(h, dropout_rate)
+        U = tf.get_variable("U", shape=[Config.hidden_size, 
+                            Config.n_classes], dtype=tf.float32, initializer = xav)
+        b2 = tf.get_variable("b2", shape=[Config.n_classes], dtype=tf.float32, initializer=xav)
+        pred = tf.matmul(h_drop, U) + b2
         ### END YOUR CODE
         return pred
 
@@ -235,7 +259,8 @@ class WindowModel(NERModel):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE (~2-5 lines)
-                                   
+        loss=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.labels_placeholder,logts=pred) #compare two outputs
+        loss = tf.reduce_mean(loss)
         ### END YOUR CODE
         return loss
 
@@ -259,7 +284,8 @@ class WindowModel(NERModel):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE (~1-2 lines)
-
+        optimizer=tf.train.AdamOptimizer(config.lr)
+        train_Op=optimizer.minimize(loss)
         ### END YOUR CODE
         return train_op
 
