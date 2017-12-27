@@ -37,7 +37,7 @@ class Config:
     n_word_features = 2 # Number of features for every word in the input.
     window_size = 1 # The size of the window to use.
     ### YOUR CODE HERE
-    n_window_features = (n_worde_features*2+1)*window_size # The total number of features used for each window.
+    n_window_features = (n_word_features*2+1)*window_size # The total number of features used for each window.
     ### END YOUR CODE
     n_classes = 5
     dropout = 0.5
@@ -259,7 +259,7 @@ class WindowModel(NERModel):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE (~2-5 lines)
-        loss=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.labels_placeholder,logts=pred) #compare two outputs
+        loss=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.labels_placeholder,logits=pred) #compare two outputs
         loss = tf.reduce_mean(loss)
         ### END YOUR CODE
         return loss
